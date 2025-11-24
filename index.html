@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PokeTime - Reloj del Juego</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .clock-container {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            text-align: center;
+            min-width: 320px;
+        }
+        
+        .game-time {
+            font-size: 48px;
+            font-weight: bold;
+            color: #333;
+            margin: 20px 0;
+        }
+        
+        .period {
+            font-size: 24px;
+            padding: 10px 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            font-weight: bold;
+        }
+        
+        .morning {
+            background: #ffeaa7;
+            color: #fdcb6e;
+        }
+        
+        .day {
+            background: #74b9ff;
+            color: #0984e3;
+        }
+        
+        .night {
+            background: #a29bfe;
+            color: #6c5ce7;
+        }
+        
+        .real-time {
+            color: #666;
+            font-size: 14px;
+            margin-top: 20px;
+        }
+        
+        .info {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            font-size: 12px;
+            color: #666;
+            line-height: 1.6;
+        }
+
+        h1 {
+            margin: 0 0 10px 0;
+            color: #333;
+        }
+
+        .subtitle {
+            color: #999;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="clock-container">
+        <h1>🎮 PokeTime</h1>
+        <div class="game-time" id="gameTime">--:--</div>
+        <div class="period" id="period">---</div>
+        <div class="real-time" id="realTime">Hora Real: --:--:--</div>
+        <div class="info">
+            🌅 <strong>Morning:</strong> 4:00 AM - 10:00 AM<br>
+            ☀️ <strong>Day:</strong> 10:00 AM - 8:00 PM<br>
+            🌙 <strong>Night:</strong> 8:00 PM - 4:00 AM
+        </div>
+    </div>
+
+    <script>
+        // Punto de referencia preciso
+        const REFERENCE_REAL_TIME = new Date('2025-11-24T18:36:03');
+        const REFERENCE_GAME_TIME = { hours: 12, minutes: 0 }; // 12:00 PM
+
+        // Constantes: 1 minuto PRO = 12 segundos reales
+        const SECONDS_PER_GAME_MINUTE = 12; // segundos reales por minuto del juego
+
+        function calculateGameTime() {
+            const now = new Date();
+            
+            // Calcular diferencia en milisegundos desde el punto de referencia
+            const timeDiff = now - REFERENCE_REAL_TIME;
+            
+            // Convertir a segundos reales
+            const realSecondsPassed = timeDiff / 1000;
+            
+            // Convertir a minutos del juego (cada 12 segundos reales = 1 minuto PRO)
+            const gameMinutesPassed = realSecondsPassed / SECONDS_PER_GAME_MINUTE;
+            
+            // Calcular la hora del juego actual
+            let totalGameMinutes = (REFERENCE_GAME_TIME.hours * 60 + REFERENCE_GAME_TIME.minutes) + gameMinutesPassed;
+            
+            // Normalizar a un día de 24 horas (1440 minutos)
+            totalGameMinutes = totalGameMinutes % 1440;
+            if (totalGameMinutes < 0) totalGameMinutes += 1440;
+            
+            const gameHours = Math.floor(totalGameMinutes / 60);
+            const gameMinutes = Math.floor(totalGameMinutes % 60);
+            
+            return { hours: gameHours, minutes: gameMinutes };
+        }
+
+        function getPeriod(hours) {
+            if (hours >= 4 && hours < 10) {
+                return { name: 'Morning', class: 'morning', icon: '🌅' };
+            } else if (hours >= 10 && hours < 20) {
+                return { name: 'Day', class: 'day', icon: '☀️' };
+            } else {
+                return { name: 'Night', class: 'night', icon: '🌙' };
+            }
+        }
+
+        function formatTime(hours, minutes) {
+            const period = hours >= 12 ? 'PM' : 'AM';
+            const displayHours = hours === 0 ? 12 : hours > 12 ? hours - 12 : hours;
+            return `${displayHours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')} ${period}`;
+        }
+
+        function updateClock() {
+            const gameTime = calculateGameTime();
+            const period = getPeriod(gameTime.hours);
+            const now = new Date();
+            
+            // Actualizar hora del juego
+            document.getElementById('gameTime').textContent = formatTime(gameTime.hours, gameTime.minutes);
+            
+            // Actualizar período
+            const periodElement = document.getElementById('period');
+            periodElement.textContent = `${period.icon} ${period.name}`;
+            periodElement.className = `period ${period.class}`;
+            
+            // Actualizar hora real
+            document.getElementById('realTime').textContent = 
+                `Hora Real: ${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`;
+        }
+
+        // Actualizar cada segundo para mayor precisión
+        updateClock();
+        setInterval(updateClock, 1000);
+    </script>
+</body>
+</html>
