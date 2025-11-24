@@ -89,16 +89,16 @@
         <div class="period" id="period">---</div>
         <div class="real-time" id="realTime">Hora Real: --:--:--</div>
         <div class="info">
-            🌅 <strong>Morning:</strong> 4:00 AM - 10:00 AM<br>
-            ☀️ <strong>Day:</strong> 10:00 AM - 8:00 PM<br>
-            🌙 <strong>Night:</strong> 8:00 PM - 4:00 AM
+            🌅 <strong>Morning:</strong> 04:00 - 10:00<br>
+            ☀️ <strong>Day:</strong> 10:00 - 20:00<br>
+            🌙 <strong>Night:</strong> 20:00 - 04:00
         </div>
     </div>
 
     <script>
         // Punto de referencia preciso
         const REFERENCE_REAL_TIME = new Date('2025-11-24T18:36:03');
-        const REFERENCE_GAME_TIME = { hours: 12, minutes: 0 }; // 12:00 PM
+        const REFERENCE_GAME_TIME = { hours: 12, minutes: 0 }; // 12:00
 
         // Constantes: 1 minuto PRO = 12 segundos reales
         const SECONDS_PER_GAME_MINUTE = 12; // segundos reales por minuto del juego
@@ -138,10 +138,9 @@
             }
         }
 
-        function formatTime(hours, minutes) {
-            const period = hours >= 12 ? 'PM' : 'AM';
-            const displayHours = hours === 0 ? 12 : hours > 12 ? hours - 12 : hours;
-            return `${displayHours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')} ${period}`;
+        // FORMATO 24 HORAS
+        function formatTime24h(hours, minutes) {
+            return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
         }
 
         function updateClock() {
@@ -149,8 +148,8 @@
             const period = getPeriod(gameTime.hours);
             const now = new Date();
             
-            // Actualizar hora del juego
-            document.getElementById('gameTime').textContent = formatTime(gameTime.hours, gameTime.minutes);
+            // Actualizar hora del juego en formato 24h
+            document.getElementById('gameTime').textContent = formatTime24h(gameTime.hours, gameTime.minutes);
             
             // Actualizar período
             const periodElement = document.getElementById('period');
