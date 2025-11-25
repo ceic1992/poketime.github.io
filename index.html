@@ -80,6 +80,8 @@
             font-size: 14px;
             margin-bottom: 20px;
         }
+
+
     </style>
 </head>
 <body>
@@ -87,7 +89,7 @@
         <h1>🎮 PokeTime</h1>
         <div class="game-time" id="gameTime">--:--</div>
         <div class="period" id="period">---</div>
-        <div class="real-time" id="realTime">Hora Real: --:--:--</div>
+        <div class="real-time" id="realTime">Hora Real Local: --:--:--</div>
         <div class="info">
             🌅 <strong>Morning:</strong> 04:00 - 10:00<br>
             ☀️ <strong>Day:</strong> 10:00 - 20:00<br>
@@ -96,29 +98,33 @@
     </div>
 
     <script>
-        // Punto de referencia preciso
-        const REFERENCE_REAL_TIME = new Date('2025-11-24T18:36:03');
-        const REFERENCE_GAME_TIME = { hours: 12, minutes: 0 }; // 12:00
+        // ========== CONFIGURACIÓN CON UTC ==========
+        
+        // 🎯 PUNTO DE REFERENCIA: Cuando fue 00:00 PokeTime
+        // Ajusta esta fecha a cuando el reloj del juego marcaba 00:00
+        const REFERENCE_REAL_TIME_UTC = Date.UTC(2025, 10, 25, 0, 0, 0); // 25 Nov 2025, 00:00:00 UTC
+        const REFERENCE_GAME_TIME = { hours: 0, minutes: 0 }; // 00:00 en el juego
 
-        // Constantes: 1 minuto PRO = 12 segundos reales
-        const SECONDS_PER_GAME_MINUTE = 12; // segundos reales por minuto del juego
+        // Constantes
+        const SECONDS_PER_GAME_MINUTE = 12; // 1 minuto PRO = 12 segundos reales
 
         function calculateGameTime() {
-            const now = new Date();
+            // Obtener tiempo actual en UTC
+            const nowUTC = Date.now();
             
-            // Calcular diferencia en milisegundos desde el punto de referencia
-            const timeDiff = now - REFERENCE_REAL_TIME;
+            // Calcular diferencia en milisegundos
+            const timeDiff = nowUTC - REFERENCE_REAL_TIME_UTC;
             
             // Convertir a segundos reales
             const realSecondsPassed = timeDiff / 1000;
             
-            // Convertir a minutos del juego (cada 12 segundos reales = 1 minuto PRO)
+            // Convertir a minutos del juego (proporción 5:1)
             const gameMinutesPassed = realSecondsPassed / SECONDS_PER_GAME_MINUTE;
             
-            // Calcular la hora del juego actual
+            // Calcular hora del juego
             let totalGameMinutes = (REFERENCE_GAME_TIME.hours * 60 + REFERENCE_GAME_TIME.minutes) + gameMinutesPassed;
             
-            // Normalizar a un día de 24 horas (1440 minutos)
+            // Normalizar a 24 horas (1440 minutos)
             totalGameMinutes = totalGameMinutes % 1440;
             if (totalGameMinutes < 0) totalGameMinutes += 1440;
             
@@ -138,7 +144,6 @@
             }
         }
 
-        // FORMATO 24 HORAS
         function formatTime24h(hours, minutes) {
             return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
         }
@@ -147,8 +152,9 @@
             const gameTime = calculateGameTime();
             const period = getPeriod(gameTime.hours);
             const now = new Date();
+            const nowUTC = new Date(Date.now());
             
-            // Actualizar hora del juego en formato 24h
+            // Actualizar PokeTime
             document.getElementById('gameTime').textContent = formatTime24h(gameTime.hours, gameTime.minutes);
             
             // Actualizar período
@@ -156,12 +162,20 @@
             periodElement.textContent = `${period.icon} ${period.name}`;
             periodElement.className = `period ${period.class}`;
             
-            // Actualizar hora real
+            // Actualizar hora real LOCAL
             document.getElementById('realTime').textContent = 
-                `Hora Real: ${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`;
+                `Hora Real Local: ${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`;
+            
+            // Actualizar hora UTC
+            document.getElementById('utcTime').textContent = 
+                `Hora UTC: ${nowUTC.getUTCHours().toString().padStart(2, '0')}:${nowUTC.getUTCMinutes().toString().padStart(2, '0')}:${nowUTC.getUTCSeconds().toString().padStart(2, '0')}`;
+            
+            // Debug info
+            const refDate = new Date(REFERENCE_REAL_TIME_UTC);
+            const minutesPassed = ((Date.now() - REFERENCE_REAL_TIME_UTC) / 1000 / 60).toFixed(2);
         }
 
-        // Actualizar cada segundo para mayor precisión
+        // Actualizar cada segundo
         updateClock();
         setInterval(updateClock, 1000);
     </script>
